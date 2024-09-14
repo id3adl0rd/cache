@@ -29,20 +29,20 @@ func NewLru(capacity int) *Lru {
 }
 
 func (c *Lru) Set(key string, value interface{}) bool {
-	c.mutex.RLock()
+	c.mutex.Lock()
 	if element, exists := c.items[key]; exists == true {
 		c.queue.MoveToFront(element)
 		element.Value.(*item).Value = value
 		return true
 	}
-	c.mutex.RUnlock()
+	c.mutex.Unlock()
 
 	if c.queue.Len() == c.capacity {
 		c.purge()
 	}
 
-	c.mutex.RLock()
-	defer c.mutex.RUnlock()
+	c.mutex.Lock()
+	defer c.mutex.Unlock()
 	item := &item{
 		Key:   key,
 		Value: value,
@@ -65,8 +65,8 @@ func (c *Lru) purge() {
 }
 
 func (c *Lru) Get(key string) interface{} {
-	c.mutex.Lock()
-	defer c.mutex.Unlock()
+	c.mutex.RLock()
+	defer c.mutex.RUnlock()
 
 	element, exists := c.items[key]
 	if exists == false {
